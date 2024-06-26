@@ -1,0 +1,58 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.6.12 <0.9.0;
+
+contract MyToken {
+  
+  constructor() {
+    person = msg.sender;
+  }
+
+  //public variables here
+  string public TokenName = "Money";
+  string public TokenAbbrv = "MON";
+  uint public totalTokenSupply = 0;
+  address public person;
+
+  //emits Events
+  event Mint(address indexed to, uint amount);
+  event Burn(address indexed from, uint amount);
+  event Transfer(address indexed from, address indexed to, uint amount);
+
+  //errors
+  error InsufficientBalance(uint balance, uint withdrawAmount);
+
+  //mapping variable here
+  mapping(address => uint) public balances;
+
+  //modifiers
+  modifier onlyPerson {
+    assert(msg.sender == person);
+    _;
+  }
+
+  //mint function
+  function mint (address token_address, uint token_value) public onlyPerson{
+    totalTokenSupply += token_value;
+    balances[token_address] += token_value;
+    emit Mint(token_address, token_value);
+  }
+
+  //burn function
+  function burn (address token_address, uint token_value) public onlyPerson{
+    if(balances[token_address] < token_value){
+      revert InsufficientBalance({balance: balances[token_address], withdrawAmount: token_value});
+    }else{
+      totalTokenSupply -= token_value;
+      balances[token_address] -= token_value;
+      emit Burn(token_address, token_value);
+    }
+  }
+
+  //transfer function
+  function transfer (address _reciver, uint token_value) public{
+    require(balances[msg.sender] >= token_value , "Account balance must be greater then transfered value!");
+    balances[msg.sender] -= token_value;
+    balances[_reciver] += token_value;
+    emit Transfer(msg.sender, _reciver, token_value);
+  }
+}
